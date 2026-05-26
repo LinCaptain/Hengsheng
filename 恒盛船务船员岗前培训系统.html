@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>恒盛船务 · 船员岗前培训系统</title>
+<style>
+  :root{
+    --navy:#0b2545;
+    --navy-2:#13315c;
+    --steel:#134074;
+    --sea:#1b4965;
+    --aqua:#2c7da0;
+    --aqua-light:#61a5c2;
+    --foam:#a9d6e5;
+    --gold:#e0a458;
+    --gold-deep:#c8862f;
+    --paper:#f4f7fa;
+    --card:#ffffff;
+    --ink:#14213d;
+    --muted:#6b7a8f;
+    --line:#dde6ef;
+    --ok:#2e8b57;
+    --warn:#c0392b;
+    --shadow:0 4px 18px rgba(11,37,69,.08);
+    --shadow-lg:0 10px 38px rgba(11,37,69,.16);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:72px;
+  }
+  .hidden{display:none !important;}
+  .app{max-width:540px;margin:0 auto;min-height:100vh;position:relative;}
+
+  /* ====== 顶栏 ====== */
+  .topbar{
+    background:linear-gradient(135deg,var(--navy) 0%,var(--steel) 55%,var(--sea) 100%);
+    color:#fff;padding:18px 18px 16px;position:sticky;top:0;z-index:30;
+    box-shadow:0 2px 14px rgba(11,37,69,.25);
+  }
+  .topbar .brand{display:flex;align-items:center;gap:10px;}
+  .anchor{width:30px;height:30px;flex:none;}
+  .topbar h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.5px;}
+  .topbar .sub{font-size:11.5px;opacity:.8;margin-top:1px;letter-spacing:.5px;}
+  .topbar .docref{font-size:11px;opacity:.7;margin-top:6px;}
+  .back-btn{
+    position:absolute;left:14px;top:18px;background:rgba(255,255,255,.14);
+    border:none;color:#fff;width:34px;height:34px;border-radius:10px;font-size:18px;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .topbar.has-back h1{margin-left:42px;}
+  .topbar.has-back .brand{margin-left:42px;}
+
+  /* ====== 内容容器 ====== */
+  .screen{padding:16px 16px 24px;animation:fade .35s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+  .card{
+    background:var(--card);border-radius:16px;padding:16px;margin-bottom:14px;
+    box-shadow:var(--shadow);border:1px solid var(--line);
+  }
+  .card h2{font-size:15px;margin:0 0 4px;display:flex;align-items:center;gap:8px;}
+  .card .tag{font-size:10.5px;background:var(--foam);color:var(--sea);padding:2px 8px;border-radius:20px;font-weight:600;}
+
+  /* ====== 首页用户卡 ====== */
+  .userpanel{
+    background:linear-gradient(135deg,#fff 0%,#eef5fb 100%);
+    border-radius:18px;padding:18px;box-shadow:var(--shadow);border:1px solid var(--line);
+    margin-bottom:16px;
+  }
+  .userpanel .row{display:flex;justify-content:space-between;align-items:flex-start;}
+  .userpanel .name{font-size:20px;font-weight:800;}
+  .userpanel .role{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .userpanel .edit{font-size:12px;color:var(--aqua);background:none;border:1px solid var(--aqua-light);
+    border-radius:8px;padding:4px 10px;cursor:pointer;}
+  .progress-wrap{margin-top:14px;}
+  .progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px;}
+  .progress-bar{height:10px;background:#e6eef6;border-radius:20px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--aqua),var(--gold));border-radius:20px;transition:width .6s ease;}
+  .hours-row{display:flex;gap:10px;margin-top:14px;}
+  .hours-box{flex:1;background:#f4f8fc;border-radius:12px;padding:10px;text-align:center;border:1px solid var(--line);}
+  .hours-box .num{font-size:19px;font-weight:800;color:var(--steel);}
+  .hours-box .lbl{font-size:11px;color:var(--muted);margin-top:1px;}
+
+  /* ====== 流程导航 ====== */
+  .flow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px;}
+  .flow-card{
+    background:var(--card);border-radius:16px;padding:16px 14px;box-shadow:var(--shadow);
+    border:1px solid var(--line);cursor:pointer;position:relative;overflow:hidden;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .flow-card:active{transform:scale(.97);}
+  .flow-card .ic{font-size:26px;}
+  .flow-card .t{font-size:14.5px;font-weight:700;margin-top:8px;}
+  .flow-card .d{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.4;}
+  .flow-card .step-no{position:absolute;top:10px;right:12px;font-size:11px;font-weight:800;color:var(--foam);}
+  .flow-card.locked{opacity:.55;}
+  .flow-card .badge{position:absolute;bottom:12px;right:12px;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700;}
+  .badge.done{background:#e3f5ec;color:var(--ok);}
+  .badge.todo{background:#fdeceb;color:var(--warn);}
+  .badge.lock{background:#eef0f3;color:var(--muted);}
+
+  /* ====== 模块列表 ====== */
+  .seg{display:flex;background:#e9f0f7;border-radius:12px;padding:4px;margin-bottom:14px;}
+  .seg button{flex:1;border:none;background:none;padding:9px;border-radius:9px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;}
+  .seg button.active{background:#fff;color:var(--steel);box-shadow:0 1px 5px rgba(0,0,0,.08);}
+
+  .mod{
+    background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px;
+    box-shadow:var(--shadow);border:1px solid var(--line);cursor:pointer;
+    display:flex;align-items:center;gap:12px;transition:transform .12s;
+  }
+  .mod:active{transform:scale(.985);}
+  .mod .mod-ic{width:42px;height:42px;flex:none;border-radius:12px;background:linear-gradient(135deg,var(--aqua),var(--sea));
+    color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;}
+  .mod .mod-body{flex:1;min-width:0;}
+  .mod .mod-title{font-size:14.5px;font-weight:700;}
+  .mod .mod-meta{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .mod .mod-state{font-size:20px;flex:none;}
+  .mod.done .mod-ic{background:linear-gradient(135deg,#3fa372,#2e8b57);}
+
+  /* ====== 模块详情 ====== */
+  .lesson h3{font-size:17px;margin:2px 0 6px;}
+  .lesson .pts{font-size:12px;color:var(--aqua);background:#eef7fb;display:inline-block;padding:3px 10px;border-radius:20px;margin-bottom:12px;}
+  .lesson p{font-size:14.5px;margin:0 0 12px;color:#2c3a4f;}
+  .lesson ul{padding-left:20px;margin:0 0 12px;}
+  .lesson li{font-size:14px;margin-bottom:7px;color:#2c3a4f;}
+  .lesson .keybox{background:#fff8ec;border-left:4px solid var(--gold);border-radius:0 10px 10px 0;padding:11px 13px;margin:12px 0;font-size:13.5px;}
+  .lesson .keybox b{color:var(--gold-deep);}
+
+  /* ====== 按钮 ====== */
+  .btn{
+    width:100%;border:none;border-radius:13px;padding:15px;font-size:16px;font-weight:700;
+    cursor:pointer;font-family:inherit;transition:opacity .15s;
+  }
+  .btn:active{opacity:.85;}
+  .btn-primary{background:linear-gradient(135deg,var(--steel),var(--aqua));color:#fff;box-shadow:var(--shadow);}
+  .btn-gold{background:linear-gradient(135deg,var(--gold-deep),var(--gold));color:#fff;box-shadow:var(--shadow);}
+  .btn-ghost{background:#eef2f7;color:var(--steel);}
+  .btn-line{background:#fff;border:1.5px solid var(--aqua-light);color:var(--aqua);}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .btn + .btn{margin-top:10px;}
+
+  /* ====== 考核 ====== */
+  .quiz-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .quiz-head .qnum{font-size:13px;color:var(--muted);}
+  .quiz-head .qtimer{font-size:13px;font-weight:700;color:var(--steel);}
+  .qprog{height:6px;background:#e6eef6;border-radius:20px;overflow:hidden;margin-bottom:16px;}
+  .qprog div{height:100%;background:var(--aqua);transition:width .3s;}
+  .question{font-size:16.5px;font-weight:600;margin-bottom:16px;line-height:1.55;}
+  .qtype{font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--foam);color:var(--sea);margin-right:8px;vertical-align:middle;}
+  .opt{
+    background:#fff;border:1.5px solid var(--line);border-radius:13px;padding:14px;margin-bottom:11px;
+    font-size:15px;cursor:pointer;display:flex;align-items:flex-start;gap:11px;transition:all .15s;
+  }
+  .opt:active{transform:scale(.99);}
+  .opt .opt-k{width:26px;height:26px;flex:none;border-radius:50%;border:1.5px solid var(--aqua-light);
+    color:var(--aqua);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+  .opt.sel{border-color:var(--aqua);background:#eef7fb;}
+  .opt.sel .opt-k{background:var(--aqua);color:#fff;border-color:var(--aqua);}
+  .opt.correct{border-color:var(--ok);background:#eaf7f0;}
+  .opt.correct .opt-k{background:var(--ok);color:#fff;border-color:var(--ok);}
+  .opt.wrong{border-color:var(--warn);background:#fdeef0;}
+  .opt.wrong .opt-k{background:var(--warn);color:#fff;border-color:var(--warn);}
+  .explain{background:#f0f6fb;border-radius:11px;padding:12px;font-size:13.5px;margin-bottom:14px;color:#2c3a4f;}
+  .explain b{color:var(--steel);}
+
+  /* ====== 结果 ====== */
+  .result-circle{width:150px;height:150px;margin:8px auto 16px;position:relative;}
+  .result-circle svg{transform:rotate(-90deg);}
+  .result-circle .ctext{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .result-circle .score{font-size:38px;font-weight:800;line-height:1;}
+  .result-circle .of{font-size:12px;color:var(--muted);margin-top:3px;}
+  .verdict{text-align:center;font-size:20px;font-weight:800;margin-bottom:6px;}
+  .verdict.pass{color:var(--ok);}
+  .verdict.fail{color:var(--warn);}
+  .verdict-sub{text-align:center;font-size:13px;color:var(--muted);margin-bottom:18px;}
+
+  /* ====== 表单 ====== */
+  label.field{display:block;font-size:13px;font-weight:600;color:var(--steel);margin:0 0 6px;}
+  input.inp,select.inp,textarea.inp{
+    width:100%;border:1.5px solid var(--line);border-radius:11px;padding:12px;font-size:15px;
+    font-family:inherit;background:#fff;color:var(--ink);margin-bottom:14px;
+  }
+  input.inp:focus,select.inp:focus,textarea.inp:focus{outline:none;border-color:var(--aqua);}
+  textarea.inp{min-height:80px;resize:vertical;}
+
+  /* 评分星/分级 */
+  .rate-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .rate-row .rl{font-size:14px;flex:1;}
+  .stars{display:flex;gap:4px;}
+  .stars span{font-size:26px;color:#d6dfe9;cursor:pointer;transition:color .1s;}
+  .stars span.on{color:var(--gold);}
+
+  /* ====== 记录列表 ====== */
+  .rec{background:var(--card);border-radius:13px;padding:14px;margin-bottom:10px;box-shadow:var(--shadow);border:1px solid var(--line);}
+  .rec .rt{font-size:14.5px;font-weight:700;}
+  .rec .rm{font-size:12px;color:var(--muted);margin-top:3px;}
+  .rec .rs{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;margin-top:8px;}
+  .rs.pass{background:#e3f5ec;color:var(--ok);}
+  .rs.fail{background:#fdeceb;color:var(--warn);}
+  .rec .meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:10px;font-size:12px;}
+  .rec .meta-grid span{color:var(--muted);}
+  .rec .meta-grid b{color:var(--ink);font-weight:600;}
+
+  .empty{text-align:center;padding:40px 20px;color:var(--muted);}
+  .empty .ic{font-size:46px;opacity:.5;}
+  .empty p{font-size:14px;margin-top:10px;}
+
+  /* ====== 底部导航 ====== */
+  .tabbar{
+    position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:540px;
+    background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);
+    display:flex;z-index:40;padding-bottom:env(safe-area-inset-bottom);
+  }
+  .tabbar button{flex:1;border:none;background:none;padding:9px 0 11px;cursor:pointer;color:var(--muted);font-family:inherit;}
+  .tabbar button .ti{font-size:21px;line-height:1;}
+  .tabbar button .tl{font-size:10.5px;margin-top:3px;display:block;}
+  .tabbar button.active{color:var(--steel);}
+  .tabbar button.active .ti{transform:translateY(-1px);}
+
+  /* 学时说明表 */
+  .reqtable{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px;}
+  .reqtable th,.reqtable td{border:1px solid var(--line);padding:7px 8px;text-align:center;}
+  .reqtable th{background:#eef5fb;color:var(--steel);font-weight:700;}
+  .reqtable td:first-child{text-align:left;}
+
+  .note{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:8px;}
+  .divider{height:1px;background:var(--line);margin:14px 0;}
+  .sectiontitle{font-size:13px;font-weight:800;color:var(--steel);margin:18px 4px 10px;letter-spacing:.5px;}
+  .toast{
+    position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(20,33,61,.94);
+    color:#fff;padding:11px 20px;border-radius:30px;font-size:13.5px;z-index:99;animation:fade .25s;max-width:90%;text-align:center;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 顶栏 -->
+  <div class="topbar" id="topbar">
+    <button class="back-btn hidden" id="backBtn" onclick="goBack()">‹</button>
+    <div class="brand">
+      <svg class="anchor" viewBox="0 0 24 24" fill="none" stroke="#a9d6e5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="5" r="2.2"/><line x1="12" y1="7.2" x2="12" y2="21"/>
+        <path d="M5 12a7 7 0 0 0 14 0"/><line x1="8" y1="12" x2="16" y2="12"/>
+      </svg>
+      <div>
+        <h1 id="topTitle">船员岗前安全教育培训</h1>
+        <div class="sub" id="topSub">防城港市恒盛船务有限公司</div>
+      </div>
+    </div>
+    <div class="docref" id="topDoc">依据 SP0604《船岸人员培训程序》v2.6 · 一指南六指引</div>
+  </div>
+
+  <!-- 屏幕容器 -->
+  <div id="screen"></div>
+
+  <!-- 底部导航 -->
+  <div class="tabbar" id="tabbar">
+    <button data-tab="home" class="active" onclick="switchTab('home')"><span class="ti">⚓</span><span class="tl">首页</span></button>
+    <button data-tab="train" onclick="switchTab('train')"><span class="ti">📚</span><span class="tl">培训</span></button>
+    <button data-tab="exam" onclick="switchTab('exam')"><span class="ti">📝</span><span class="tl">考核</span></button>
+    <button data-tab="records" onclick="switchTab('records')"><span class="ti">🗂️</span><span class="tl">记录</span></button>
+    <button data-tab="me" onclick="switchTab('me')"><span class="ti">👤</span><span class="tl">我的</span></button>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   恒盛船务 · 船员岗前培训系统
+   依据 SP0604《船岸人员培训程序》v2.6
+   ========================================================= */
+
+/* ---------- 数据：人员类型与学时要求（7.2 条） ---------- */
+const PERSON_TYPES = {
+  shore:    { name:"岸基管理人员（含主要负责人）", total:48, shore:48, ship:0, note:"初次安全培训不少于48学时；在岗每年不少于16学时", scope:"shore13" },
+  newcrew:  { name:"新聘船员", total:72, shore:68, ship:4, note:"岗前培训不少于72学时（岸基68 + 船舶4）", scope:"both" },
+  newofficer:{ name:"新聘船长 / 驾驶员", total:72, shore:68, ship:4, note:"岗前培训不少于72学时（岸基68 + 船舶4）", scope:"both" },
+  transfer: { name:"转岗船员", total:4, shore:2, ship:2, note:"不少于4学时（岸基2 + 船舶2）", scope:"both" },
+  returnSr: { name:"返岗船员·船长及高级船员（离岗4-6月）", total:3, shore:2, ship:1, note:"不少于3学时（岸基2 + 船舶1）", scope:"both" },
+  returnJr: { name:"返岗船员·普通船员（离岗4-6月）", total:2, shore:1, ship:1, note:"不少于2学时（岸基1 + 船舶1）", scope:"both" }
+};
+
+/* ---------- 13个岸基模块 + 6个船舶模块（7.1 条） ---------- */
+const SHORE_MODULES = [
+  {id:"s1", icon:"⚖", title:"公约法规类", hours:8, pts:[
+    "《海上交通安全法》《海洋环境保护法》《船员条例》等国内法规框架；",
+    "SOLAS、MARPOL、STCW、MLC等国际公约对船员适任与防污染的核心要求；",
+    "《ISM规则》《NSM规则》及其在公司安全管理体系中的落实。"],
+    key:"船员须知晓与本岗位履职相关的强制性公约、法规与标准，做到知法守法、依规操作。"},
+  {id:"s2", icon:"📋", title:"管理制度类", hours:8, pts:[
+    "公司安全管理体系（SMS）文件结构：手册、程序、须知、记录；",
+    "安全生产责任制与岗位职责分工（一岗双责）；",
+    "值班、交接班、报告、奖惩等核心管理制度。"],
+    key:"理解公司“一指南六指引”框架下的制度体系，明确本岗位安全生产主体责任。"},
+  {id:"s3", icon:"🧭", title:"行为规范类", hours:6, pts:[
+    "船员职业道德、劳动纪律与行为准则；",
+    "禁酒、禁毒、禁烟（指定区域）等纪律红线；",
+    "危险货物船舶人员行为规范（对应 OM0140）。"],
+    key:"养成规范的职业行为习惯，杜绝违章违纪，树立“我要安全”的主动意识。"},
+  {id:"s4", icon:"🤝", title:"劳工权益类", hours:4, pts:[
+    "《海事劳工公约（MLC2006）》关于工时、休息、工资、遣返的保障；",
+    "劳动合同、社会保险与职业健康权益；",
+    "投诉申诉渠道与维权途径。"],
+    key:"了解自身合法劳工权益及其保护机制，依法维护正当权益。"},
+  {id:"s5", icon:"🚢", title:"船舶基本情况交底", hours:4, pts:[
+    "公司船队概况：液化气船（抚龙02、抚龙33、宏粤）与油船（抚龙31）；",
+    "拟任船舶的船型、吨位、主要设备与航线区域；",
+    "全压式LPG船与油船的基本结构和货物特性。"],
+    key:"上船前掌握拟服务船舶的基本情况，做到心中有数、有的放矢。"},
+  {id:"s6", icon:"⚠", title:"安全风险类", hours:8, pts:[
+    "危险货物船舶（LPG/油船）的主要风险源辨识；",
+    "风险分级管控与隐患排查治理双重预防机制（对应 SP0702）；",
+    "重大危险源、关键设备（ESD系统、低温系统）的管控要点。"],
+    key:"建立风险防范意识，掌握本岗位重点风险及防控措施，落实双重预防。"},
+  {id:"s7", icon:"🆘", title:"应急处置类", hours:6, pts:[
+    "消防、弃船、人员落水、溢油、危险品泄漏等应急部署；",
+    "应急组织、报警程序与个人在应急中的职责；",
+    "船岸联合应急演习要求。"],
+    key:"熟悉应急预案与个人职责，关键时刻能正确、快速响应。"},
+  {id:"s8", icon:"⚙", title:"船舶设备类", hours:6, pts:[
+    "主推进、发电、舵机、锚机等关键设备概述；",
+    "消防、救生、防污染设备的配置与使用；",
+    "LPG船特殊设备：液货系统、ESD紧急切断、低温防护。"],
+    key:"了解拟任岗位涉及的设备原理与操作要点，为船舶实操培训打基础。"},
+  {id:"s9", icon:"🕐", title:"值班管理类", hours:5, pts:[
+    "驾驶台与机舱值班标准（STCW值班规则）；",
+    "瞭望、避碰（对应 OM0218 商渔船避碰）与航行安全；",
+    "值班交接班的内容与记录要求。"],
+    key:"掌握规范的值班与交接班要求，确保航行与停泊安全。"},
+  {id:"s10", icon:"📡", title:"沟通协作类", hours:3, pts:[
+    "船岸沟通、内部协同与团队配合；",
+    "标准航海用语与VHF通信；",
+    "驾机协调、引航员配合与多方协作。"],
+    key:"提升沟通协作能力，避免因信息不畅导致的人为失误。"},
+  {id:"s11", icon:"📦", title:"营运特点类", hours:3, pts:[
+    "公司主营航线、港口与货种营运特点；",
+    "液化气/油品装卸作业流程与安全要点；",
+    "港口国监督（PSC）与船旗国检查（FSC）应对。"],
+    key:"了解公司营运特点及货物作业风险，适应实际营运需要。"},
+  {id:"s12", icon:"❤", title:"身心健康类", hours:3, pts:[
+    "船上职业健康、疲劳管理与心理调适；",
+    "传染病防控与急救常识；",
+    "长期海上作业的身心健康维护。"],
+    key:"关注自身身心健康，保持良好状态履行岗位职责。"},
+  {id:"s13", icon:"🔔", title:"事故险情案例警示等其他类", hours:4, pts:[
+    "本行业典型事故案例剖析（LPG/油船事故）；",
+    "对照国际公约、国内法规和行业标准解读事故原因；",
+    "深刻汲取教训，举一反三制定防控措施。"],
+    key:"以案为鉴，强化红线意识，把警示教育转化为防控行动。"}
+];
+
+const SHIP_MODULES = [
+  {id:"p1", icon:"⚙", title:"船舶设备类", hours:1, pts:[
+    "本船关键设备的现场认知与操作要点；",
+    "ESD紧急切断系统、液货泵、低温系统的实操；",
+    "消防、救生、防污染设备的现场定位与使用。"],
+    key:"由船长/部门长一对一带教，开航前完成关键设备操作能力核验。"},
+  {id:"p2", icon:"📜", title:"船舶制度类", hours:1, pts:[
+    "本船值班表、应变部署表、各项须知；",
+    "本船作息、报告与交接班制度；",
+    "船长特别命令与本船管理要求。"],
+    key:"熟悉本船具体制度安排，与上船前指令相衔接。"},
+  {id:"p3", icon:"⚠", title:"安全风险类", hours:1, pts:[
+    "本船特定风险点辨识（货物、航线、季节）；",
+    "本船重大危险源与作业安全措施；",
+    "本航次特定风险提示。"],
+    key:"掌握本船、本航次的具体风险与防控措施。"},
+  {id:"p4", icon:"🆘", title:"应急处置类", hours:0.5, pts:[
+    "本船应急集合点、逃生路线与应急装备位置；",
+    "个人在本船应变部署表中的具体职责；",
+    "本船应急通信与报警程序。"],
+    key:"清楚个人在本船应急中的角色与行动路线。"},
+  {id:"p5", icon:"🌊", title:"环境因素类", hours:0.25, pts:[
+    "本船防污染要求与垃圾/油污/含油污水管理；",
+    "航经敏感水域的环保要求；",
+    "压载水管理等环境合规要点。"],
+    key:"落实本船防污染与环保操作要求。"},
+  {id:"p6", icon:"🧭", title:"航前指令类", hours:0.25, pts:[
+    "上船前指令（航次任务、注意事项）的落实；",
+    "船长航前训示与本航次重点提示；",
+    "履职前的最后确认与签认。"],
+    key:"与上船前指令要求衔接，确保履职前准备充分。"}
+];
+
+/* ---------- 考核题库（对应各模块重点，覆盖 7.5 考核要点） ---------- */
+const QUESTION_BANK = {
+  shore:[
+    {q:"根据SP0604，船员岗前培训应按照怎样的顺序实施？",t:"单选",o:["先船舶培训后岸基培训","先岸基培训后船舶培训","岸基与船舶培训同时进行","由船员自行决定顺序"],a:1,e:"7.1.2条：应按先岸基培训后船舶培训的顺序依次实施，通常应完成岸基培训并考核合格后方可上船。"},
+    {q:"新聘船员岗前培训建议总学时不少于多少？",t:"单选",o:["48学时","60学时","72学时","100学时"],a:2,e:"7.2.2条：新聘船员岗前培训建议不少于72学时，其中岸基不少于68学时、船舶不少于4学时。"},
+    {q:"岸基培训共包含多少个培训模块？",t:"单选",o:["6个","10个","13个","19个"],a:2,e:"7.1.1条：岸基培训共13个模块，船舶培训共6个模块。"},
+    {q:"新聘岸基管理人员（含主要负责人）初次安全培训时间不得少于多少学时？",t:"单选",o:["16学时","24学时","48学时","72学时"],a:2,e:"7.2.1条：新聘岸基管理人员初次安全培训不得少于48学时；在岗每年不少于16学时。"},
+    {q:"以下哪项属于公司经营的危险货物船舶应特别补充的培训内容？",t:"多选",o:["ESD紧急切断系统","低温系统操作","驾驶台航行值班关键岗位风险","普通办公软件使用"],a:[0,1,2],e:"7.1.3条：液化气/油船及驾驶台值班等关键岗位应针对ESD系统、低温系统等特殊设备配置和潜在风险补充培训。"},
+    {q:"岸基人员初次安全培训、船长和船员岗前安全培训的考核应以何种方式为主？",t:"单选",o:["口试","笔试","实操","自学"],a:1,e:"7.5.1条：上述人员的考核应以笔试为主。"},
+    {q:"危险货物船舶人员行为规范主要对应公司哪份须知文件？",t:"单选",o:["OM0139","OM0140","OM0135","OM0218"],a:1,e:"OM0140为危险货物船舶船员行为须知；OM0139为危险货物安全作业须知。"},
+    {q:"风险分级管控与隐患排查治理“双重预防机制”主要对应公司哪份程序？",t:"单选",o:["SP0603","SP0702","SP0604","OM0136"],a:1,e:"SP0702为风险控制/双重预防（双重把关）程序。"},
+    {q:"未经安全生产教育培训或培训不合格的员工，能否上岗？",t:"单选",o:["可以，先上岗再补训","不得上岗","由船长决定","紧急情况下可以"],a:1,e:"7.5.4条：未经安全生产教育培训或培训不合格的员工，不得上岗。"},
+    {q:"公司应在每年哪个月组织安全生产月活动？",t:"单选",o:["3月","5月","6月","12月"],a:2,e:"6.2.1条：安全生产月活动在每年6月；安全宣传咨询日为每年5月第三个周日。"}
+  ],
+  ship:[
+    {q:"船舶培训通常采用何种带教模式？",t:"单选",o:["集中大班授课","线上自学","“一对一”带教","委托第三方"],a:2,e:"7.3.2条：船舶培训由船长和部门长负责，通常采用“一对一”带教模式。"},
+    {q:"船舶培训的关键设备操作能力核验应在什么时间完成？",t:"单选",o:["上船后一个月内","开航前","到港后","下一航次"],a:1,e:"7.3.2条：由船长或指定人员在开航前完成关键设备操作能力核验且合格。"},
+    {q:"船舶培训完成后的考核以何种方式为主？",t:"单选",o:["笔试","实操或口头答辩","线上答卷","查验证书"],a:1,e:"7.5.3条：船舶培训考核以实操或口头答辩为主，重点考核关键设备与关键操作。"},
+    {q:"船舶培训共包含哪几类模块？",t:"多选",o:["船舶设备类","船舶制度类","安全风险类","应急处置类"],a:[0,1,2,3],e:"7.1.1条：船舶培训含船舶设备、船舶制度、安全风险、应急处置、环境因素、航前指令共6个模块。"},
+    {q:"紧急流程下无法按正常流程完成岸基培训的，可委托谁完成岸基培训相关内容？",t:"单选",o:["人事主管","船长","轮机长","体系主管"],a:1,e:"7.4.2条：经综合评估后可委托船长完成岸基培训相关内容，上岗后由船长等监护并在合理时间内补足学时。"},
+    {q:"值班人员在船舶进行培训而无法参加时，应如何处理？",t:"单选",o:["免于该次培训","在适宜时候进行补培训","由他人代签","记为缺勤"],a:1,e:"6.1.11条：值班人员不能参加的，应在适宜时候进行补培训。"}
+  ]
+};
+
+/* ---------- 满意度调查项（SP0604-C，对应7.6.1量化评价） ---------- */
+const SURVEY_ITEMS = [
+  "培训内容与岗位实际需求的契合度",
+  "培训学时安排的合理性",
+  "培训方式（授课/实操/线上）的有效性",
+  "授课/带教人员的专业水平",
+  "考核方式与岗位要求的匹配度",
+  "对本岗位安全风险与防控措施的掌握程度",
+  "整体培训组织与服务的满意度"
+];
+
+/* =========================================================
+   状态管理（localStorage 本地存储）
+   ========================================================= */
+const LS_KEY = "hengsheng_sp0604_v1";
+let STATE = loadState();
+
+function defaultState(){
+  return {
+    user:{ name:"", idno:"", post:"", ptype:"newcrew", vessel:"", instructor:"" },
+    done:{ shore:{}, ship:{} },      // 模块完成状态 {模块id:时间戳}
+    exams:[],                         // 考核记录
+    surveys:[],                       // 满意度调查记录
+    setup:false
+  };
+}
+function loadState(){
+  try{ const s=JSON.parse(localStorage.getItem(LS_KEY)); return s&&s.user?s:defaultState(); }
+  catch(e){ return defaultState(); }
+}
+function saveState(){ localStorage.setItem(LS_KEY, JSON.stringify(STATE)); }
+
+/* =========================================================
+   导航
+   ========================================================= */
+let currentTab="home";
+let viewStack=[];   // 用于返回
+
+function switchTab(tab){
+  currentTab=tab; viewStack=[];
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  setBack(false);
+  if(tab==="home") renderHome();
+  else if(tab==="train") renderTrainHub();
+  else if(tab==="exam") renderExamHub();
+  else if(tab==="records") renderRecords();
+  else if(tab==="me") renderMe();
+}
+function setBack(show, title){
+  const tb=document.getElementById('topbar'), bb=document.getElementById('backBtn');
+  if(show){ tb.classList.add('has-back'); bb.classList.remove('hidden'); }
+  else{ tb.classList.remove('has-back'); bb.classList.add('hidden'); }
+}
+function pushView(renderFn, title){
+  viewStack.push(renderFn);
+  setBack(true);
+  renderFn();
+}
+function goBack(){
+  viewStack.pop();
+  if(viewStack.length>0){ viewStack[viewStack.length-1](); }
+  else { setBack(false); switchTab(currentTab); }
+}
+function setScreen(html){ document.getElementById('screen').innerHTML = html; window.scrollTo(0,0); }
+function setTop(title,sub){
+  document.getElementById('topTitle').textContent=title||"船员岗前安全教育培训";
+}
+
+function toast(msg){
+  const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t); setTimeout(()=>t.remove(),1800);
+}
+
+/* =========================================================
+   工具函数
+   ========================================================= */
+function fmtDate(ts){
+  const d=new Date(ts);
+  const p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function getScope(){ return PERSON_TYPES[STATE.user.ptype].scope; } // shore13 | both
+function needsShip(){ return getScope()==="both"; }
+
+function shoreDoneCount(){ return Object.keys(STATE.done.shore).length; }
+function shipDoneCount(){ return Object.keys(STATE.done.ship).length; }
+function shoreHoursDone(){ return SHORE_MODULES.filter(m=>STATE.done.shore[m.id]).reduce((s,m)=>s+m.hours,0); }
+function shipHoursDone(){ return SHIP_MODULES.filter(m=>STATE.done.ship[m.id]).reduce((s,m)=>s+m.hours,0); }
+
+function shoreAllDone(){ return SHORE_MODULES.every(m=>STATE.done.shore[m.id]); }
+function shipAllDone(){ return SHIP_MODULES.every(m=>STATE.done.ship[m.id]); }
+
+function latestExam(type){ // type: shore|ship
+  const list=STATE.exams.filter(e=>e.type===type);
+  return list.length?list[list.length-1]:null;
+}
+function shoreExamPassed(){ const e=latestExam('shore'); return e&&e.pass; }
+function shipExamPassed(){ const e=latestExam('ship'); return e&&e.pass; }
+
+function overallProgress(){
+  // 进度 = 岸基学习 + 岸基考核 + (船舶学习 + 船舶考核)
+  let total=2, got=0; // 岸基学习、岸基考核
+  if(shoreAllDone()) got++;
+  if(shoreExamPassed()) got++;
+  if(needsShip()){
+    total+=2;
+    if(shipAllDone()) got++;
+    if(shipExamPassed()) got++;
+  }
+  return Math.round(got/total*100);
+}
+
+/* =========================================================
+   首页
+   ========================================================= */
+function renderHome(){
+  setTop();
+  if(!STATE.setup){ renderWelcome(); return; }
+
+  const pt=PERSON_TYPES[STATE.user.ptype];
+  const prog=overallProgress();
+  const shoreH=shoreHoursDone(), shipH=shipHoursDone();
+
+  const steps=[
+    { id:1, ic:"📚", t:"岸基培训学习", d:`13个模块 · 已完成 ${shoreDoneCount()}/13`,
+      badge: shoreAllDone()?'done':'todo', locked:false, fn:()=>{currentTab='train';openTrain('shore');} },
+    { id:2, ic:"📝", t:"岸基培训考核", d: shoreExamPassed()?`已通过 ${latestExam('shore').score}分`:"笔试为主 · 80分合格",
+      badge: shoreExamPassed()?'done':(shoreAllDone()?'todo':'lock'), locked:!shoreAllDone(),
+      fn:()=>{ if(!shoreAllDone()){toast('请先完成全部岸基模块学习');return;} startExam('shore'); } }
+  ];
+  if(needsShip()){
+    steps.push(
+    { id:3, ic:"🚢", t:"船舶培训学习", d:`6个模块 · 已完成 ${shipDoneCount()}/6`,
+      badge: shipAllDone()?'done':(shoreExamPassed()?'todo':'lock'), locked:!shoreExamPassed(),
+      fn:()=>{ if(!shoreExamPassed()){toast('需先通过岸基考核方可上船');return;} currentTab='train';openTrain('ship'); } },
+    { id:4, ic:"✅", t:"船舶培训考核", d: shipExamPassed()?`已通过 ${latestExam('ship').score}分`:"实操/口头答辩 · 80分合格",
+      badge: shipExamPassed()?'done':(shipAllDone()?'todo':'lock'), locked:!shipAllDone(),
+      fn:()=>{ if(!shipAllDone()){toast('请先完成全部船舶模块学习');return;} startExam('ship'); } });
+  }
+
+  const allComplete = shoreAllDone() && shoreExamPassed() && (!needsShip() || (shipAllDone()&&shipExamPassed()));
+
+  let html = `
+  <div class="screen">
+    <div class="userpanel">
+      <div class="row">
+        <div>
+          <div class="name">${STATE.user.name||'船员'}</div>
+          <div class="role">${pt.name}${STATE.user.post?' · '+STATE.user.post:''}</div>
+          ${STATE.user.vessel?`<div class="role">拟任船舶：${STATE.user.vessel}</div>`:''}
+        </div>
+        <button class="edit" onclick="switchTab('me')">编辑</button>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>岗前培训总进度</span><span>${prog}%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${prog}%"></div></div>
+      </div>
+      <div class="hours-row">
+        <div class="hours-box"><div class="num">${shoreH}<span style="font-size:12px">/${pt.shore}</span></div><div class="lbl">岸基学时</div></div>
+        ${needsShip()?`<div class="hours-box"><div class="num">${shipH}<span style="font-size:12px">/${pt.ship}</span></div><div class="lbl">船舶学时</div></div>`:''}
+        <div class="hours-box"><div class="num">${(shoreH+shipH)}<span style="font-size:12px">/${pt.total}</span></div><div class="lbl">建议总学时</div></div>
+      </div>
+    </div>`;
+
+  if(allComplete){
+    html += `<div class="card" style="background:linear-gradient(135deg,#eaf7f0,#dff0e8);border-color:#bfe3cd">
+      <h2 style="color:var(--ok)">🎖 岗前培训已完成</h2>
+      <p style="font-size:13.5px;color:#2c3a4f;margin:6px 0 0">岸基与船舶培训均已学习并考核合格。请填写满意度调查表（SP0604-C），并向人事主管/船长提交培训记录归档。</p>
+      <div style="margin-top:12px"><button class="btn btn-gold" onclick="startSurvey()">填写满意度调查（SP0604-C）</button></div>
+    </div>`;
+  }
+
+  html += `<div class="sectiontitle">岗前培训流程</div><div class="flow">`;
+  steps.forEach(s=>{
+    const badgeTxt = s.badge==='done'?'已完成':(s.badge==='todo'?'待办':'未解锁');
+    html += `<div class="flow-card ${s.locked?'locked':''}" data-step="${s.id}">
+      <span class="step-no">0${s.id}</span>
+      <div class="ic">${s.ic}</div>
+      <div class="t">${s.t}</div>
+      <div class="d">${s.d}</div>
+      <span class="badge ${s.badge}">${badgeTxt}</span>
+    </div>`;
+  });
+  html += `</div>`;
+
+  // 快捷入口
+  html += `<div class="sectiontitle">其他</div>
+    <div class="flow">
+      <div class="flow-card" onclick="startSurvey()"><div class="ic">⭐</div><div class="t">满意度调查</div><div class="d">SP0604-C 量化评价</div></div>
+      <div class="flow-card" onclick="switchTab('records')"><div class="ic">🗂️</div><div class="t">我的记录</div><div class="d">SP0604-B 学习记录</div></div>
+    </div>`;
+
+  html += `</div>`;
+  setScreen(html);
+
+  // 绑定步骤点击（用闭包，避免内联拼接函数名）
+  steps.forEach(s=>{
+    const el=document.querySelector('.flow-card[data-step="'+s.id+'"]');
+    if(el) el.addEventListener('click', s.fn);
+  });
+}
+
+/* ---------- 首次设置 / 欢迎 ---------- */
+function renderWelcome(){
+  setTop();
+  setScreen(`
+  <div class="screen">
+    <div class="card" style="background:linear-gradient(135deg,var(--navy),var(--sea));color:#fff;border:none">
+      <h2 style="color:#fff;font-size:18px">⚓ 欢迎使用船员岗前培训系统</h2>
+      <p style="color:#dce8f2;font-size:13.5px;margin:8px 0 0;line-height:1.6">
+      本系统依据防城港市恒盛船务有限公司 SP0604《船岸人员培训程序》v2.6 建设，按“先岸基后船舶”的顺序，引导您完成岗前安全教育培训的学习、考核与记录归档。</p>
+    </div>
+    <div class="card">
+      <h2>📌 培训流程</h2>
+      <p style="font-size:13.5px;color:#2c3a4f;margin:8px 0 0">
+      ① 完成 13 个岸基模块学习 → ② 通过岸基考核（笔试为主）→ ③ 完成 6 个船舶模块学习 → ④ 通过船舶考核（实操/答辩）→ ⑤ 填写满意度调查并归档培训记录。</p>
+    </div>
+    <button class="btn btn-primary" onclick="renderSetup(true)">开始登记信息</button>
+  </div>`);
+}
+
+/* ---------- 信息登记 ---------- */
+function renderSetup(first){
+  setTop("登记 / 编辑信息");
+  const u=STATE.user;
+  let opts="";
+  for(const k in PERSON_TYPES){ opts+=`<option value="${k}" ${u.ptype===k?'selected':''}>${PERSON_TYPES[k].name}</option>`; }
+  const body=`
+  <div class="screen">
+    <div class="card">
+      <h2>👤 人员信息登记</h2>
+      <div style="margin-top:12px">
+        <label class="field">姓名</label>
+        <input class="inp" id="f_name" value="${u.name||''}" placeholder="请输入姓名">
+        <label class="field">身份证 / 船员证号（选填）</label>
+        <input class="inp" id="f_idno" value="${u.idno||''}" placeholder="用于记录归档">
+        <label class="field">拟任职务 / 岗位</label>
+        <input class="inp" id="f_post" value="${u.post||''}" placeholder="如：二副、机工、安全督察">
+        <label class="field">人员类型 <span style="color:var(--warn)">*</span></label>
+        <select class="inp" id="f_ptype">${opts}</select>
+        <div class="note" id="ptypeNote"></div>
+        <label class="field" style="margin-top:14px">拟任船舶（选填）</label>
+        <select class="inp" id="f_vessel">
+          <option value="">— 请选择 —</option>
+          <option ${u.vessel==='抚龙02号（全压式LPG船）'?'selected':''}>抚龙02号（全压式LPG船）</option>
+          <option ${u.vessel==='抚龙33号（全压式LPG船）'?'selected':''}>抚龙33号（全压式LPG船）</option>
+          <option ${u.vessel==='宏粤（全压式LPG船）'?'selected':''}>宏粤（全压式LPG船）</option>
+          <option ${u.vessel==='抚龙31号（油船）'?'selected':''}>抚龙31号（油船）</option>
+          <option ${u.vessel==='岸基（不上船）'?'selected':''}>岸基（不上船）</option>
+        </select>
+        <label class="field">培训 / 带教负责人（选填）</label>
+        <input class="inp" id="f_instructor" value="${u.instructor||''}" placeholder="如：人事主管 / 船长姓名">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveSetup(${first?'true':'false'})">保存并${first?'开始培训':'返回'}</button>
+  </div>`;
+  if(first){ setBack(true); }
+  setScreen(body);
+  // 动态显示学时说明
+  const sel=document.getElementById('f_ptype'), note=document.getElementById('ptypeNote');
+  function upd(){ note.textContent="学时要求："+PERSON_TYPES[sel.value].note; }
+  sel.addEventListener('change',upd); upd();
+}
+function saveSetup(first){
+  const name=document.getElementById('f_name').value.trim();
+  if(!name){ toast('请填写姓名'); return; }
+  STATE.user.name=name;
+  STATE.user.idno=document.getElementById('f_idno').value.trim();
+  STATE.user.post=document.getElementById('f_post').value.trim();
+  STATE.user.ptype=document.getElementById('f_ptype').value;
+  STATE.user.vessel=document.getElementById('f_vessel').value;
+  STATE.user.instructor=document.getElementById('f_instructor').value.trim();
+  STATE.setup=true;
+  saveState();
+  toast('信息已保存');
+  if(first){ viewStack=[]; setBack(false); switchTab('home'); }
+  else { goBack(); }
+}
+
+/* =========================================================
+   培训 Hub & 模块
+   ========================================================= */
+function renderTrainHub(){ openTrain(needsShip()&&shoreExamPassed()&&!shipAllDone()?'ship':'shore'); }
+
+let trainSeg='shore';
+function openTrain(seg){
+  trainSeg=seg;
+  setTop("培训学习");
+  setBack(false);
+  const isShore=seg==='shore';
+  const mods=isShore?SHORE_MODULES:SHIP_MODULES;
+  const doneMap=isShore?STATE.done.shore:STATE.done.ship;
+
+  let segHtml = `<div class="seg">
+    <button class="${isShore?'active':''}" onclick="openTrain('shore')">岸基培训 (13)</button>`;
+  if(needsShip()) segHtml += `<button class="${!isShore?'active':''}" onclick="openTrain('ship')">船舶培训 (6)</button>`;
+  segHtml += `</div>`;
+
+  let listHtml='';
+  mods.forEach((m,i)=>{
+    const done=doneMap[m.id];
+    listHtml += `<div class="mod ${done?'done':''}" onclick="openModule('${seg}','${m.id}')">
+      <div class="mod-ic">${m.icon}</div>
+      <div class="mod-body">
+        <div class="mod-title">${i+1}. ${m.title}</div>
+        <div class="mod-meta">建议 ${m.hours} 学时 ${done?'· 已完成 '+fmtDate(done).slice(5,16):''}</div>
+      </div>
+      <div class="mod-state">${done?'✅':'›'}</div>
+    </div>`;
+  });
+
+  // 船舶段未解锁提示
+  let lockHint='';
+  if(!isShore && !shoreExamPassed()){
+    lockHint=`<div class="card" style="background:#fff8ec;border-color:#f0dcb8">
+      <p style="margin:0;font-size:13px;color:#8a6d3b">⚠ 按 7.1.2 条要求，应先完成岸基培训并考核合格后方可上船开展船舶培训。船舶模块内容可预习，考核需在岸基考核通过后进行。</p></div>`;
+  }
+
+  setScreen(`<div class="screen">
+    ${segHtml}
+    ${lockHint}
+    ${listHtml}
+    <div class="note">提示：每个模块学习完成后点击“完成本模块学习”计入学时（SP0604-B）。${isShore?'13个岸基模块全部完成后可进入岸基考核。':'6个船舶模块由船长/部门长现场带教，全部完成后进入船舶考核。'}</div>
+  </div>`);
+}
+
+function openModule(seg, id){
+  const isShore=seg==='shore';
+  const mods=isShore?SHORE_MODULES:SHIP_MODULES;
+  const m=mods.find(x=>x.id===id);
+  const doneMap=isShore?STATE.done.shore:STATE.done.ship;
+  const idx=mods.indexOf(m)+1;
+
+  let ptsHtml=m.pts.map(p=>`<li>${p}</li>`).join('');
+  const render=()=>{
+    setTop(isShore?"岸基模块":"船舶模块");
+    setScreen(`<div class="screen">
+      <div class="card lesson">
+        <span class="pts">${isShore?'岸基':'船舶'}模块 ${idx} · 建议 ${m.hours} 学时</span>
+        <h3>${m.icon} ${m.title}</h3>
+        <p style="font-weight:600;color:var(--steel)">本模块要点：</p>
+        <ul>${ptsHtml}</ul>
+        <div class="keybox"><b>培训目标：</b>${m.key}</div>
+        ${!isShore?'<div class="note">船舶模块应由船长或部门长在船现场“一对一”带教完成，本页内容供对照与签认。</div>':''}
+      </div>
+      ${doneMap[id]
+        ? `<button class="btn btn-ghost" onclick="undoModule('${seg}','${id}')">已完成 ✓（点击撤销）</button>`
+        : `<button class="btn btn-primary" onclick="completeModule('${seg}','${id}')">完成本模块学习</button>`}
+    </div>`);
+  };
+  pushView(render);
+}
+function completeModule(seg,id){
+  const map=seg==='shore'?STATE.done.shore:STATE.done.ship;
+  map[id]=Date.now(); saveState();
+  toast('已计入学习记录');
+  goBack();
+  // 返回培训列表刷新
+  setTimeout(()=>{ if(viewStack.length===0) openTrain(seg); },10);
+}
+function undoModule(seg,id){
+  const map=seg==='shore'?STATE.done.shore:STATE.done.ship;
+  delete map[id]; saveState(); toast('已撤销');
+  goBack();
+  setTimeout(()=>{ if(viewStack.length===0) openTrain(seg); },10);
+}
+
+/* =========================================================
+   考核 Hub & 答题
+   ========================================================= */
+function renderExamHub(){
+  setTop("培训考核");
+  setBack(false);
+  const sE=latestExam('shore'), pE=latestExam('ship');
+  let html=`<div class="screen">
+    <div class="card">
+      <h2>📝 培训效果考核 <span class="tag">SP0604 7.5条</span></h2>
+      <p style="font-size:13px;color:#2c3a4f;margin:8px 0 0">岸基考核以笔试为主，船舶考核以实操/口头答辩为主，合格线 80 分。考核重点：岗位必需的安全知识、重点风险防控、值班与行为规范、劳工权益、事故险情案例警示。</p>
+    </div>`;
+
+  // 岸基考核卡
+  html += examCard('shore','岸基培训考核','📚', sE, !shoreAllDone(),
+    shoreAllDone()?'':'需先完成全部13个岸基模块学习');
+
+  if(needsShip()){
+    const locked = !shipAllDone() || !shoreExamPassed();
+    let hint='';
+    if(!shoreExamPassed()) hint='需先通过岸基考核';
+    else if(!shipAllDone()) hint='需先完成全部6个船舶模块学习';
+    html += examCard('ship','船舶培训考核','🚢', pE, locked, hint);
+  }
+
+  html+=`</div>`;
+  setScreen(html);
+}
+function examCard(type,title,ic,last,locked,hint){
+  let status;
+  if(last){ status=`<span class="rs ${last.pass?'pass':'fail'}">${last.pass?'已通过':'未通过'} · ${last.score}分</span>`; }
+  else status=`<span class="rs fail">未考核</span>`;
+  return `<div class="card">
+    <h2>${ic} ${title}</h2>
+    <div style="margin-top:6px">${status} ${last?`<span style="font-size:11.5px;color:var(--muted);margin-left:6px">${fmtDate(last.ts).slice(5,16)}</span>`:''}</div>
+    ${locked
+      ? `<div class="note" style="color:var(--warn)">🔒 ${hint}</div><button class="btn btn-ghost" disabled style="margin-top:10px">未解锁</button>`
+      : `<button class="btn ${last&&last.pass?'btn-line':'btn-primary'}" style="margin-top:10px" onclick="startExam('${type}')">${last?'重新考核':'开始考核'}</button>`}
+  </div>`;
+}
+
+/* ---------- 考核进行 ---------- */
+let EXAM=null;
+function startExam(type){
+  if(type==='shore' && !shoreAllDone()){ toast('请先完成全部岸基模块'); return; }
+  if(type==='ship'){
+    if(!shoreExamPassed()){ toast('需先通过岸基考核'); return; }
+    if(!shipAllDone()){ toast('请先完成全部船舶模块'); return; }
+  }
+  // 抽题：打乱并取全部（题库较小，全用）
+  const bank=QUESTION_BANK[type].map(q=>({...q}));
+  shuffle(bank);
+  EXAM={ type, qs:bank, idx:0, answers:new Array(bank.length).fill(null), startTs:Date.now() };
+  setBack(true);
+  pushView(renderExamQuestion);
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } }
+
+function renderExamQuestion(){
+  const e=EXAM, q=e.qs[e.idx];
+  setTop(e.type==='shore'?'岸基考核':'船舶考核');
+  const isMulti=q.t==='多选';
+  const sel=e.answers[e.idx];
+
+  const keys=['A','B','C','D','E','F'];
+  let optsHtml=q.o.map((opt,i)=>{
+    let cls='opt';
+    if(isMulti){ if(Array.isArray(sel)&&sel.includes(i)) cls+=' sel'; }
+    else { if(sel===i) cls+=' sel'; }
+    return `<div class="${cls}" onclick="pickOpt(${i},${isMulti})">
+      <div class="opt-k">${keys[i]}</div><div style="flex:1">${opt}</div></div>`;
+  }).join('');
+
+  const answered = isMulti ? (Array.isArray(sel)&&sel.length>0) : (sel!==null);
+
+  setScreen(`<div class="screen">
+    <div class="quiz-head">
+      <span class="qnum">第 ${e.idx+1} / ${e.qs.length} 题</span>
+      <span class="qtimer" id="qtimer">⏱ 00:00</span>
+    </div>
+    <div class="qprog"><div style="width:${(e.idx)/e.qs.length*100}%"></div></div>
+    <div class="card">
+      <div class="question"><span class="qtype">${q.t}</span>${q.q}</div>
+      ${optsHtml}
+      ${isMulti?'<div class="note">多选题：选择全部正确选项后点击下一题</div>':''}
+    </div>
+    <button class="btn btn-primary" ${answered?'':'disabled'} onclick="nextQ()">
+      ${e.idx===e.qs.length-1?'提交并查看成绩':'下一题'}</button>
+    ${e.idx>0?'<button class="btn btn-ghost" onclick="prevQ()">上一题</button>':''}
+  </div>`);
+  startTimer();
+}
+let timerInt=null;
+function startTimer(){
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{
+    if(!EXAM)return;
+    const s=Math.floor((Date.now()-EXAM.startTs)/1000);
+    const el=document.getElementById('qtimer');
+    if(el) el.textContent=`⏱ ${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  },1000);
+}
+function pickOpt(i,isMulti){
+  const e=EXAM;
+  if(isMulti){
+    let arr=Array.isArray(e.answers[e.idx])?[...e.answers[e.idx]]:[];
+    if(arr.includes(i)) arr=arr.filter(x=>x!==i); else arr.push(i);
+    e.answers[e.idx]=arr;
+  } else { e.answers[e.idx]=i; }
+  renderExamQuestion();
+}
+function nextQ(){
+  if(EXAM.idx<EXAM.qs.length-1){ EXAM.idx++; renderExamQuestion(); }
+  else finishExam();
+}
+function prevQ(){ if(EXAM.idx>0){ EXAM.idx--; renderExamQuestion(); } }
+
+function isCorrect(q,ans){
+  if(q.t==='多选'){
+    if(!Array.isArray(ans)) return false;
+    const a=[...q.a].sort().join(','), b=[...ans].sort().join(',');
+    return a===b;
+  }
+  return ans===q.a;
+}
+function finishExam(){
+  clearInterval(timerInt);
+  const e=EXAM;
+  let correct=0;
+  e.qs.forEach((q,i)=>{ if(isCorrect(q,e.answers[i])) correct++; });
+  const score=Math.round(correct/e.qs.length*100);
+  const pass=score>=80;
+  const rec={
+    type:e.type, score, pass, correct, total:e.qs.length,
+    ts:Date.now(), durationS:Math.floor((Date.now()-e.startTs)/1000),
+    detail:e.qs.map((q,i)=>({q:q.q,t:q.t,o:q.o,a:q.a,my:e.answers[i],e:q.e,ok:isCorrect(q,e.answers[i])}))
+  };
+  STATE.exams.push(rec); saveState();
+  EXAM.result=rec;
+  pushView(renderExamResult);
+}
+function renderExamResult(){
+  const r=EXAM.result;
+  const circ=2*Math.PI*64;
+  const off=circ*(1-r.score/100);
+  const color=r.pass?'#2e8b57':'#c0392b';
+  setTop("考核成绩");
+  setScreen(`<div class="screen">
+    <div class="card" style="text-align:center">
+      <div class="result-circle">
+        <svg width="150" height="150">
+          <circle cx="75" cy="75" r="64" fill="none" stroke="#e6eef6" stroke-width="12"/>
+          <circle cx="75" cy="75" r="64" fill="none" stroke="${color}" stroke-width="12"
+            stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${off}"/>
+        </svg>
+        <div class="ctext"><div class="score" style="color:${color}">${r.score}</div><div class="of">满分100</div></div>
+      </div>
+      <div class="verdict ${r.pass?'pass':'fail'}">${r.pass?'✅ 考核合格':'❌ 考核不合格'}</div>
+      <div class="verdict-sub">答对 ${r.correct}/${r.total} 题 · 用时 ${Math.floor(r.durationS/60)}分${r.durationS%60}秒 · 合格线80分</div>
+      ${r.pass
+        ? (EXAM.type==='shore'&&needsShip() ? '<div class="note" style="color:var(--ok)">岸基考核已通过，船舶培训已解锁。</div>':'')
+        : '<div class="note" style="color:var(--warn)">未达合格线，请复习相关模块后重新考核。按7.5.4条，培训不合格不得上岗。</div>'}
+    </div>
+    <div class="sectiontitle">答题解析</div>
+    ${r.detail.map((d,i)=>renderAnswerReview(d,i)).join('')}
+    <button class="btn btn-primary" onclick="afterExam()">完成</button>
+    ${!r.pass?'<button class="btn btn-gold" onclick="startExam(EXAM.type)">立即重考</button>':''}
+  </div>`);
+}
+function renderAnswerReview(d,i){
+  const keys=['A','B','C','D','E','F'];
+  const correctArr = Array.isArray(d.a)?d.a:[d.a];
+  const myArr = Array.isArray(d.my)?d.my:(d.my===null?[]:[d.my]);
+  let opts=d.o.map((o,j)=>{
+    let cls='opt';
+    if(correctArr.includes(j)) cls+=' correct';
+    else if(myArr.includes(j)) cls+=' wrong';
+    return `<div class="${cls}" style="cursor:default"><div class="opt-k">${keys[j]}</div><div style="flex:1">${o}</div>
+      ${correctArr.includes(j)?'<span style="color:var(--ok);font-size:13px">✓</span>':(myArr.includes(j)?'<span style="color:var(--warn);font-size:13px">✗</span>':'')}</div>`;
+  }).join('');
+  return `<div class="card">
+    <div style="font-size:14px;font-weight:600;margin-bottom:10px">${d.ok?'<span style="color:var(--ok)">●</span>':'<span style="color:var(--warn)">●</span>'} ${i+1}. ${d.q}</div>
+    ${opts}
+    <div class="explain"><b>解析：</b>${d.e}</div>
+  </div>`;
+}
+function afterExam(){ EXAM=null; viewStack=[]; setBack(false); switchTab(currentTab==='home'?'home':'exam'); }
+
+/* =========================================================
+   满意度调查 SP0604-C
+   ========================================================= */
+let SURVEY=null;
+function startSurvey(){
+  SURVEY={ ratings:new Array(SURVEY_ITEMS.length).fill(0), text:'' };
+  setBack(true);
+  pushView(renderSurvey);
+}
+function renderSurvey(){
+  setTop("满意度调查");
+  let rows=SURVEY_ITEMS.map((it,i)=>`
+    <div class="rate-row">
+      <div class="rl">${i+1}. ${it}</div>
+      <div class="stars" data-i="${i}">
+        ${[1,2,3,4,5].map(n=>`<span class="${SURVEY.ratings[i]>=n?'on':''}" onclick="setRate(${i},${n})">★</span>`).join('')}
+      </div>
+    </div>`).join('');
+  setScreen(`<div class="screen">
+    <div class="card">
+      <h2>⭐ 岗前培训满意度调查 <span class="tag">SP0604-C</span></h2>
+      <p style="font-size:12.5px;color:var(--muted);margin:6px 0 0">请对各项进行 1-5 星量化评价（5星=非常满意）。本调查用于7.6.1条培训效果评估与持续改进。</p>
+    </div>
+    <div class="card">${rows}</div>
+    <div class="card">
+      <label class="field">意见与改进建议（选填）</label>
+      <textarea class="inp" id="sv_text" placeholder="对培训内容、方式、学时安排等的建议">${SURVEY.text||''}</textarea>
+    </div>
+    <button class="btn btn-gold" onclick="submitSurvey()">提交调查</button>
+  </div>`);
+}
+function setRate(i,n){ SURVEY.ratings[i]=n; SURVEY.text=document.getElementById('sv_text')?.value||SURVEY.text; renderSurvey(); }
+function submitSurvey(){
+  if(SURVEY.ratings.some(r=>r===0)){ toast('请完成所有评分项'); return; }
+  SURVEY.text=document.getElementById('sv_text').value.trim();
+  const avg=(SURVEY.ratings.reduce((a,b)=>a+b,0)/SURVEY.ratings.length);
+  STATE.surveys.push({ ratings:[...SURVEY.ratings], text:SURVEY.text, avg:avg.toFixed(2), ts:Date.now() });
+  saveState();
+  SURVEY=null; toast('调查已提交，感谢反馈');
+  viewStack=[]; setBack(false); switchTab('records');
+}
+
+/* =========================================================
+   记录 SP0604-B
+   ========================================================= */
+function renderRecords(){
+  setTop("培训记录");
+  setBack(false);
+  const u=STATE.user, pt=PERSON_TYPES[u.ptype];
+
+  // 学习记录汇总
+  const shoreList=SHORE_MODULES.filter(m=>STATE.done.shore[m.id]);
+  const shipList=SHIP_MODULES.filter(m=>STATE.done.ship[m.id]);
+
+  let html=`<div class="screen">
+    <div class="card">
+      <h2>🗂️ 培训学习记录 <span class="tag">SP0604-B</span></h2>
+      <div class="meta-grid" style="margin-top:10px">
+        <span>姓名</span><b>${u.name||'—'}</b>
+        <span>人员类型</span><b>${pt.name}</b>
+        <span>拟任职务</span><b>${u.post||'—'}</b>
+        <span>拟任船舶</span><b>${u.vessel||'—'}</b>
+        <span>带教负责人</span><b>${u.instructor||'—'}</b>
+        <span>已修学时</span><b>${shoreHoursDone()+shipHoursDone()} / ${pt.total}</b>
+      </div>
+    </div>`;
+
+  // 培训记录
+  html+=`<div class="sectiontitle">模块学习记录</div>`;
+  if(shoreList.length===0 && shipList.length===0){
+    html+=`<div class="empty"><div class="ic">📭</div><p>暂无学习记录，请前往“培训”完成模块学习</p></div>`;
+  } else {
+    if(shoreList.length){
+      html+=`<div style="font-size:12.5px;font-weight:700;color:var(--muted);margin:0 4px 8px">岸基培训 ${shoreList.length}/13</div>`;
+      shoreList.forEach(m=>{ html+=`<div class="rec"><div class="rt">${m.icon} ${m.title}</div><div class="rm">${m.hours}学时 · 完成于 ${fmtDate(STATE.done.shore[m.id])}</div></div>`; });
+    }
+    if(shipList.length){
+      html+=`<div style="font-size:12.5px;font-weight:700;color:var(--muted);margin:14px 4px 8px">船舶培训 ${shipList.length}/6</div>`;
+      shipList.forEach(m=>{ html+=`<div class="rec"><div class="rt">${m.icon} ${m.title}</div><div class="rm">${m.hours}学时 · 完成于 ${fmtDate(STATE.done.ship[m.id])}</div></div>`; });
+    }
+  }
+
+  // 考核记录
+  html+=`<div class="sectiontitle">考核记录</div>`;
+  if(STATE.exams.length===0){
+    html+=`<div class="empty"><div class="ic">📝</div><p>暂无考核记录</p></div>`;
+  } else {
+    [...STATE.exams].reverse().forEach(e=>{
+      html+=`<div class="rec">
+        <div class="rt">${e.type==='shore'?'📚 岸基培训考核':'🚢 船舶培训考核'}</div>
+        <div class="rm">${fmtDate(e.ts)} · 用时${Math.floor(e.durationS/60)}分${e.durationS%60}秒</div>
+        <span class="rs ${e.pass?'pass':'fail'}">${e.pass?'合格':'不合格'} · ${e.score}分（${e.correct}/${e.total}）</span>
+      </div>`;
+    });
+  }
+
+  // 满意度调查记录
+  html+=`<div class="sectiontitle">满意度调查记录</div>`;
+  if(STATE.surveys.length===0){
+    html+=`<div class="empty"><div class="ic">⭐</div><p>暂无调查记录</p></div>`;
+  } else {
+    [...STATE.surveys].reverse().forEach(s=>{
+      html+=`<div class="rec">
+        <div class="rt">⭐ 满意度调查（SP0604-C）</div>
+        <div class="rm">${fmtDate(s.ts)} · 平均评分 ${s.avg}/5.00</div>
+        ${s.text?`<div class="rm" style="margin-top:6px;color:#2c3a4f">建议：${s.text}</div>`:''}
+      </div>`;
+    });
+  }
+
+  html+=`<div class="divider"></div>
+    <button class="btn btn-line" onclick="exportRecord()">📤 导出培训记录（文本）</button>
+    <div class="note">导出内容可复制后交人事主管/船长归档（保存期≥5年，对应7.7条）。本系统数据保存在本机浏览器中。</div>
+  </div>`;
+  setScreen(html);
+}
+
+function exportRecord(){
+  const u=STATE.user, pt=PERSON_TYPES[u.ptype];
+  let t=`防城港市恒盛船务有限公司\n船员岗前培训学习记录（SP0604-B）\n${'='.repeat(34)}\n`;
+  t+=`姓名：${u.name||'—'}\n证号：${u.idno||'—'}\n人员类型：${pt.name}\n拟任职务：${u.post||'—'}\n拟任船舶：${u.vessel||'—'}\n带教负责人：${u.instructor||'—'}\n学时要求：${pt.note}\n已修学时：岸基${shoreHoursDone()} + 船舶${shipHoursDone()} = ${shoreHoursDone()+shipHoursDone()}\n\n`;
+  t+=`【岸基培训记录】${shoreDoneCount()}/13\n`;
+  SHORE_MODULES.forEach((m,i)=>{ const d=STATE.done.shore[m.id]; t+=`  ${i+1}. ${m.title}（${m.hours}学时）${d?'✓ '+fmtDate(d):'未完成'}\n`; });
+  if(needsShip()){
+    t+=`\n【船舶培训记录】${shipDoneCount()}/6\n`;
+    SHIP_MODULES.forEach((m,i)=>{ const d=STATE.done.ship[m.id]; t+=`  ${i+1}. ${m.title}（${m.hours}学时）${d?'✓ '+fmtDate(d):'未完成'}\n`; });
+  }
+  t+=`\n【考核记录】\n`;
+  if(STATE.exams.length===0) t+='  无\n';
+  STATE.exams.forEach(e=>{ t+=`  ${e.type==='shore'?'岸基考核':'船舶考核'}：${e.score}分 ${e.pass?'合格':'不合格'}（${e.correct}/${e.total}）${fmtDate(e.ts)}\n`; });
+  t+=`\n【满意度调查】\n`;
+  if(STATE.surveys.length===0) t+='  无\n';
+  STATE.surveys.forEach(s=>{ t+=`  平均${s.avg}/5.00 ${fmtDate(s.ts)}${s.text?'　建议:'+s.text:''}\n`; });
+  t+=`\n${'='.repeat(34)}\n培训人员签字：__________  日期：____________\n考核责任人签字：________  日期：____________\n（依据 SP0604《船岸人员培训程序》v2.6）`;
+
+  // 尝试复制
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(t).then(()=>showExportModal(t,true)).catch(()=>showExportModal(t,false));
+  } else showExportModal(t,false);
+}
+function showExportModal(text,copied){
+  setBack(true);
+  pushView(()=>{
+    setTop("导出记录");
+    setScreen(`<div class="screen">
+      <div class="card">
+        <h2>📤 培训记录文本</h2>
+        <p class="note">${copied?'已自动复制到剪贴板。':'请长按下方文本全选复制。'}可粘贴至微信/邮件发送给人事主管或船长归档。</p>
+      </div>
+      <div class="card"><textarea class="inp" style="min-height:340px;font-size:12.5px;font-family:monospace" readonly>${text.replace(/</g,'&lt;')}</textarea></div>
+      <button class="btn btn-primary" onclick="goBack()">返回</button>
+    </div>`);
+  });
+}
+
+/* =========================================================
+   我的
+   ========================================================= */
+function renderMe(){
+  setTop("我的");
+  setBack(false);
+  const u=STATE.user, pt=PERSON_TYPES[u.ptype];
+  setScreen(`<div class="screen">
+    <div class="userpanel">
+      <div class="row">
+        <div><div class="name">${u.name||'未登记'}</div><div class="role">${pt.name}</div></div>
+        <button class="edit" onclick="(()=>{setBack(true);pushView(()=>renderSetup(false));})()">编辑信息</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>📋 我的人员类型学时要求</h2>
+      <table class="reqtable">
+        <tr><th>类型</th><th>岸基</th><th>船舶</th><th>合计</th></tr>
+        <tr><td>${pt.name}</td><td>${pt.shore}</td><td>${pt.ship}</td><td><b>${pt.total}</b></td></tr>
+      </table>
+      <div class="note">${pt.note}</div>
+    </div>
+    <div class="card">
+      <h2>ℹ 关于本系统</h2>
+      <p style="font-size:13px;color:#2c3a4f;margin:8px 0 0">
+      本系统依据防城港市恒盛船务有限公司 <b>SP0604《船岸人员培训程序》v2.6</b>（生效日期 2026.05.15）建设，落实“一指南六指引”框架下的船员岗前安全教育培训要求。<br><br>
+      • 13个岸基模块 + 6个船舶模块（7.1条）<br>
+      • 分人员类型的学时要求（7.2条）<br>
+      • 考核以笔试/实操为主，80分合格（7.5条）<br>
+      • SP0604-B 培训学习记录 / SP0604-C 满意度调查<br>
+      • 闭环管理与持续改进（7.6条）</p>
+    </div>
+    <button class="btn btn-ghost" onclick="resetAll()">清空本机数据（重新开始）</button>
+    <div class="note">数据保存在本机浏览器，不会上传。清空后无法恢复。</div>
+  </div>`);
+}
+function resetAll(){
+  if(confirm('确定清空本机所有培训数据？此操作不可恢复。')){
+    localStorage.removeItem(LS_KEY); STATE=defaultState(); saveState();
+    toast('已清空'); switchTab('home');
+  }
+}
+
+/* =========================================================
+   启动（加固：等待DOM就绪 + 错误兜底）
+   ========================================================= */
+function boot(){
+  try{
+    switchTab('home');
+  }catch(err){
+    // 兜底：万一渲染出错，至少显示提示而不是整片空白
+    var sc=document.getElementById('screen');
+    if(sc){
+      sc.innerHTML='<div class="screen"><div class="card">'+
+        '<h2>⚠ 页面加载遇到问题</h2>'+
+        '<p style="font-size:13.5px;color:#2c3a4f;margin-top:8px">建议点击右上角“…”，选择“在浏览器打开”（Safari）后重试。</p>'+
+        '<p style="font-size:12px;color:#999;margin-top:10px">错误信息：'+(err&&err.message?err.message:err)+'</p>'+
+        '</div></div>';
+    }
+  }
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded', boot);
+}else{
+  boot();
+}
+</script>
+</body>
+</html>
