@@ -393,7 +393,7 @@ const SHIP_MODULES = [
     key:"与上船前指令要求衔接，确保履职前准备充分。"}
 ];
 
-/* ---------- 专项模块（仅驾驶部/船长）---------- */
+/* ---------- 专项模块（对所有岗位可见；职务匹配者必修，其他人选修）---------- */
 const SPECIAL_MODULES = [
   {id:"sp1", icon:"🎣", title:"防范商渔船碰撞应知应会", hours:2, pts:[
     "商渔船碰撞规律与高危时段（黑色五小时）辨识；",
@@ -402,7 +402,7 @@ const SPECIAL_MODULES = [
     "渔船作业信号、渔具外延与操纵受限的识别；",
     "开渔节前专项培训、船长夜航命令与应急处置。"],
     key:"专供船长与驾驶部航前掌握，落实商渔船防碰撞履职要求，考核合格方可承担渔区值班。",
-    roleLimit:["deck"]}
+    postMatch:["船长","大副","二副","三副","水手","值班水手"]}
 ];
 
 /* ---------- 考核题库（按模块×岗位组织，综合抽题） ---------- */
@@ -431,10 +431,9 @@ function buildComboExam(type){
   const want = (type==='shore')?EXAM_CONFIG.shoreCount:EXAM_CONFIG.shipCount;
   return pool.slice(0, Math.min(want, pool.length));
 }
-/* 专项模块抽题：从指定专项模块(如sp1)按岗位抽题 */
+/* 专项模块抽题：从指定专项模块抽题（题库不分岗位，所有人共享同一套）*/
 function buildSpecialExam(modId){
-  const role = STATE.user.role || 'deck';
-  const bank = (MODULE_BANK[modId] && MODULE_BANK[modId][role]) || [];
+  const bank = (MODULE_BANK[modId] && (MODULE_BANK[modId].deck || MODULE_BANK[modId].common || [])) || [];
   const pool = bank.map(q=>({...q, _mod:modId}));
   for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
   return pool.slice(0, Math.min(EXAM_CONFIG.specialCount, pool.length));
@@ -448,10 +447,16 @@ function hasBank(type){
   }
   return false;
 }
-/* 该用户是否需要专项模块（根据 roleLimit） */
+/* 专项模块：对所有人可见，无岗位过滤 */
 function getSpecialModules(){
-  const role = STATE.user.role || 'deck';
-  return SPECIAL_MODULES.filter(m => !m.roleLimit || m.roleLimit.includes(role));
+  return SPECIAL_MODULES.slice();
+}
+/* 判断某专项模块对当前用户是否为必修：按职务字段包含匹配 */
+function isSpecialRequired(sm){
+  if(!sm.postMatch || !sm.postMatch.length) return false;
+  const post = (STATE.user.post || '').trim();
+  if(!post) return false;
+  return sm.postMatch.some(k => post.indexOf(k) >= 0);
 }
 
 /* ---------- 满意度调查项（SP0604-C，对应7.6.1量化评价） ---------- */
@@ -603,29 +608,39 @@ function renderHome(){
       badge: shipExamPassed()?'done':(shipAllDone()?'todo':'lock'), locked:!shipAllDone(),
       fn:()=>{ if(!shipAllDone()){toast('请先完成全部船舶模块学习');return;} startExam('ship'); } });
   }
-  // 专项流程（按岗位限制）
+  // 专项流程（对所有人可见；职务匹配者为必修，其他人为选修）
   const specials = getSpecialModules();
   specials.forEach((sm, k)=>{
     const learned = STATE.done.special && STATE.done.special[sm.id];
     const examKey = 'special:'+sm.id;
     const lastExam = STATE.exams.filter(x=>x.type===examKey).slice(-1)[0] || null;
     const examPassed = lastExam && lastExam.pass;
+    const required = isSpecialRequired(sm);
+    const tag = required ? '必修' : '选修';
     const baseId = steps.length+1;
     steps.push({
-      id: baseId, ic: sm.icon, t: sm.title+' 学习', d: learned?'已完成 '+fmtDate(learned).slice(5,10):'专项模块',
-      badge: learned?'done':'todo', locked:false,
+      id: baseId, ic: sm.icon, t: sm.title+' 学习', d: learned?'已完成 '+fmtDate(learned).slice(5,10):`专项模块 · ${tag}`,
+      badge: learned?'done':(required?'todo':'todo'), locked:false,
       fn: ()=>{ currentTab='train'; openTrain('special'); }
     });
     const pts=EXAM_CONFIG.specialPointsPerQ;
     steps.push({
       id: baseId+1, ic:'🎯', t: sm.title.slice(0,6)+'…考核',
-      d: examPassed?`已通过 ${lastExam.correct*pts}/${lastExam.total*pts}分`:`20题×${pts}分 · 80分合格`,
+      d: examPassed?`已通过 ${lastExam.correct*pts}/${lastExam.total*pts}分`:`20题×${pts}分 · 80分合格 · ${tag}`,
       badge: examPassed?'done':(learned?'todo':'lock'), locked:!learned,
       fn: ()=>{ if(!learned){toast('请先完成该专项模块学习');return;} startExam(examKey); }
     });
   });
 
-  const allComplete = shoreAllDone() && shoreExamPassed() && (!needsShip() || (shipAllDone()&&shipExamPassed()));
+  // 必修专项是否都通过（选修不影响 allComplete）
+  const requiredSpecialsPassed = specials.filter(sm=>isSpecialRequired(sm)).every(sm=>{
+    const examKey='special:'+sm.id;
+    const last=STATE.exams.filter(x=>x.type===examKey).slice(-1)[0];
+    return last && last.pass;
+  });
+  const allComplete = shoreAllDone() && shoreExamPassed()
+    && (!needsShip() || (shipAllDone()&&shipExamPassed()))
+    && requiredSpecialsPassed;
 
   let html = `
   <div class="screen">
@@ -722,7 +737,8 @@ function renderSetup(first){
         <label class="field">身份证 / 船员证号（选填）</label>
         <input class="inp" id="f_idno" value="${u.idno||''}" placeholder="用于记录归档">
         <label class="field">拟任职务（选填）</label>
-        <input class="inp" id="f_post" value="${u.post||''}" placeholder="如：二副、机工、安全督察">
+        <input class="inp" id="f_post" value="${u.post||''}" placeholder="如：二副、机工、安全督察" style="margin-bottom:6px">
+        <div class="note" style="margin-bottom:14px">填写"船长/大副/二副/三副/水手/值班水手"任一职务，将额外必修「防范商渔船碰撞应知应会」专项模块。</div>
         <label class="field">岗位部门 <span style="color:var(--warn)">*</span>（决定考核题目）</label>
         <select class="inp" id="f_role">
           <option value="deck" ${u.role==='deck'?'selected':''}>驾驶部</option>
@@ -815,8 +831,13 @@ function openTrain(seg){
       <p style="margin:0;font-size:13px;color:#8a6d3b">⚠ 按 7.1.2 条要求，应先完成岸基培训并考核合格后方可上船开展船舶培训。船舶模块内容可预习，考核需在岸基考核通过后进行。</p></div>`;
   }
   if(seg==='special'){
+    // 判断当前用户是否有必修专项
+    const anyRequired = getSpecialModules().some(sm=>isSpecialRequired(sm));
+    const tipText = anyRequired
+      ? `🎣 根据您填写的职务，需完成本专项模块的学习并通过专项考核（20题/每题5分/合格线80分），独立于岸基/船舶考核。`
+      : `🎣 本专项模块面向船长、大副、二副、三副、水手、值班水手为必修，其他人员可自愿学习。学习后可参加专项考核（20题/每题5分/合格线80分）。`;
     lockHint=`<div class="card" style="background:#fff8ec;border-color:#f0dcb8">
-      <p style="margin:0;font-size:13px;color:#8a6d3b">🎣 本专项模块专供船长与驾驶部航前掌握，独立于岸基/船舶综合考核，学习完成后可进入专项考核（20题/每题5分/合格线80分）。</p></div>`;
+      <p style="margin:0;font-size:13px;color:#8a6d3b">${tipText}</p></div>`;
   }
 
   setScreen(`<div class="screen">
@@ -847,7 +868,7 @@ function openModule(seg, id){
         <ul>${ptsHtml}</ul>
         <div class="keybox"><b>培训目标：</b>${m.key}</div>
         ${seg==='ship'?'<div class="note">船舶模块应由船长或部门长在船现场“一对一”带教完成，本页内容供对照与签认。</div>':''}
-        ${seg==='special'?'<div class="note">本专项模块专供船长与驾驶部航前掌握，学习完成后进入专项考核（20题/每题5分/合格线80分）。</div>':''}
+        ${seg==='special'?'<div class="note">本专项模块对船长、大副、二副、三副、水手、值班水手为必修（按职务判定），其他人员可自愿学习。学习完成后进入专项考核（20题/每题5分/合格线80分）。</div>':''}
       </div>
       ${doneMap[id]
         ? `<button class="btn btn-ghost" onclick="undoModule('${seg}','${id}')">已完成 ✓（点击撤销）</button>`
@@ -896,7 +917,7 @@ function renderExamHub(){
     html += examCard('ship','船舶培训考核','🚢', pE, locked, hint);
   }
 
-  // 专项模块考核（按岗位限制显示）
+  // 专项模块考核（对所有岗位可见，按职务显示必修/选修）
   const specials = getSpecialModules();
   if(specials.length){
     html += `<div class="sectiontitle" style="margin-top:18px">专项考核</div>`;
@@ -907,9 +928,13 @@ function renderExamHub(){
       const locked = !learned;
       const hint = locked?'需先完成该专项模块学习':'';
       const fullScore = EXAM_CONFIG.specialCount * EXAM_CONFIG.specialPointsPerQ;
+      const required = isSpecialRequired(sm);
+      const tagColor = required ? 'background:#fdeceb;color:#c0392b' : 'background:#eef7fb;color:#2c7da0';
+      const tagText = required ? '必修（按职务）' : '选修';
       html += `<div class="card">
-        <h2>${sm.icon} ${sm.title} <span class="tag">专项</span></h2>
-        <p style="font-size:12.5px;color:var(--muted);margin:6px 0 0">抽 ${EXAM_CONFIG.specialCount} 题 · 每题 ${EXAM_CONFIG.specialPointsPerQ} 分 · 满分 ${fullScore} · 合格线 ${EXAM_CONFIG.specialPassLine} 分</p>
+        <h2>${sm.icon} ${sm.title}
+          <span class="tag" style="${tagColor}">${tagText}</span></h2>
+        <p style="font-size:12.5px;color:var(--muted);margin:6px 0 0">抽 ${EXAM_CONFIG.specialCount} 题 · 每题 ${EXAM_CONFIG.specialPointsPerQ} 分 · 满分 ${fullScore} · 合格线 ${EXAM_CONFIG.specialPassLine} 分${required?'　·　依据职务判定为必修':'　·　可自愿参加'}</p>
         <div style="margin-top:8px">${last?`<span class="rs ${last.pass?'pass':'fail'}">${last.pass?'已通过':'未通过'} · ${last.score}分</span> <span style="font-size:11.5px;color:var(--muted);margin-left:6px">${fmtDate(last.ts).slice(5,16)}</span>`:'<span class="rs fail">未考核</span>'}</div>
         ${locked
           ? `<div class="note" style="color:var(--warn)">🔒 ${hint}</div><button class="btn btn-ghost" disabled style="margin-top:10px">未解锁</button>`
@@ -940,8 +965,9 @@ function startExam(type){
   // 专项考核: type 形如 'special:sp1'
   if(type.startsWith('special:')){
     const modId = type.split(':')[1];
-    if(!MODULE_BANK[modId] || !(MODULE_BANK[modId][STATE.user.role||'deck']||[]).length){
-      toast('该专项题库未录入或不适用于当前岗位'); return;
+    const bankArr = MODULE_BANK[modId] && (MODULE_BANK[modId].deck || MODULE_BANK[modId].common || []);
+    if(!bankArr || !bankArr.length){
+      toast('该专项题库未录入'); return;
     }
     const bank = buildSpecialExam(modId);
     if(bank.length===0){ toast('暂无可用题目'); return; }
